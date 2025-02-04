@@ -29,7 +29,7 @@ to support the [Marigold](https://marigoldcomputervision.github.io) project. The
 
 ## Live demo
 
-YouTube video:
+YouTube video:<br>
 [![YouTube](http://i.ytimg.com/vi/8j0X8qXfKCg/hqdefault.jpg)](https://www.youtube.com/watch?v=8j0X8qXfKCg)
 
 This very space running live on Hugging Face Spaces: 
