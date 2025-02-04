@@ -36,12 +36,14 @@ import os.path
 from pathlib import Path
 from typing import Union, Tuple
 
+import numpy as np
 from PIL import Image
 from gradio import processing_utils
+from gradio import utils
 from gradio.data_classes import FileData, GradioRootModel, JsonData
 from gradio_client import utils as client_utils
 from gradio_imageslider import ImageSlider
-from gradio_imageslider.imageslider import image_tuple
+from gradio_imageslider.imageslider import image_tuple, image_variants
 
 
 class ImageSliderPlusData(GradioRootModel):
@@ -61,9 +63,25 @@ class ImageSliderPlus(ImageSlider):
             return im
         fmt = im.format
         path = processing_utils.save_pil_to_cache(
-            im, cache_dir=self.GRADIO_CACHE, format=fmt or "png"
+            im, cache_dir=self.GRADIO_CACHE, format="png"
         )
         self.temp_files.add(path)
+        return path
+
+    def _postprocess_image(self, y: image_variants):
+        if isinstance(y, np.ndarray):
+            path = processing_utils.save_img_array_to_cache(
+                y, cache_dir=self.GRADIO_CACHE, format="png"
+            )
+        elif isinstance(y, Image.Image):
+            path = processing_utils.save_pil_to_cache(
+                y, cache_dir=self.GRADIO_CACHE, format="png"
+            )
+        elif isinstance(y, (str, Path)):
+            path = y if isinstance(y, str) else str(utils.abspath(y))
+        else:
+            raise ValueError("Cannot process this value as an Image")
+
         return path
 
     def postprocess(

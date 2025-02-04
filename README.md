@@ -43,3 +43,10 @@ If you find this code useful, we kindly ask you to cite our most relevant papers
   year={2024}
 }
 ```
+
+## License
+
+The web part of this work is licensed under a 
+[Creative Commons Attribution-ShareAlike 4.0 International License](http://creativecommons.org/licenses/by-sa/4.0/).
+The code part of this work is licensed under an
+[Apache License, Version 2.0](https://www.apache.org/licenses/LICENSE-2.0).

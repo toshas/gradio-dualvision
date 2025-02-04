@@ -35,7 +35,6 @@ import glob
 import json
 import os
 import re
-from typing import Dict, Any, Optional
 
 import gradio as gr
 import spaces
@@ -118,22 +117,33 @@ class DualVisionApp(gr.Blocks):
                         return;
                     }
                     observer.disconnect();
-                    const newButtonLeft = document.createElement("a");
-                    newButtonLeft.href = "https://github.com/toshas/gradio-dualvision";
-                    newButtonLeft.className = oldButtonLeft.className;
-                    newButtonLeft.text = "Built with Gradio DualVision";
-                    newButtonLeft.style.textDecoration = "none";
-                    newButtonLeft.style.display = "inline-block";
-                    newButtonLeft.style.cursor = "pointer";
-                    oldButtonLeft.parentNode.replaceChild(newButtonLeft, oldButtonLeft);
-                    const newButtonRight = document.createElement("a");
-                    newButtonRight.href = "https://www.obukhov.ai";
-                    newButtonRight.className = oldButtonRight.className;
-                    newButtonRight.text = "Template by Anton Obukhov";
-                    newButtonRight.style.textDecoration = "none";
-                    newButtonRight.style.display = "inline-block";
-                    newButtonRight.style.cursor = "pointer";
-                    oldButtonRight.parentNode.replaceChild(newButtonRight, oldButtonRight);
+
+                    const parentDiv = oldButtonLeft.parentNode;
+                    if (!parentDiv) return;
+                
+                    const createButton = (referenceButton, text, href) => {
+                        let newButton = referenceButton.cloneNode(true);
+                        newButton.href = href;
+                        newButton.textContent = text;
+                        newButton.className = referenceButton.className;
+                        newButton.style.textDecoration = "none";
+                        newButton.style.display = "inline-block";
+                        newButton.style.cursor = "pointer";
+                        return newButton;
+                    };
+                
+                    const newButton0 = createButton(oldButtonRight, "Built with Gradio DualVision", "https://github.com/toshas/gradio-dualvision");
+                    const newButton1 = createButton(oldButtonRight, "Template by Anton Obukhov", "https://www.obukhov.ai");
+                    const newButton2 = createButton(oldButtonRight, "Licensed under CC BY-SA 4.0", "http://creativecommons.org/licenses/by-sa/4.0/");
+                
+                    const separatorDiv = document.createElement("div");
+                    separatorDiv.className = "svelte-1rjryqp";
+                    separatorDiv.textContent = "·";
+                    
+                    parentDiv.replaceChild(newButton0, oldButtonLeft);
+                    parentDiv.replaceChild(newButton1, oldButtonRight);
+                    parentDiv.appendChild(separatorDiv);
+                    parentDiv.appendChild(newButton2);
                 });
                 observerFooterButtons.observe(document.body, { childList: true, subtree: true });
             </script>
@@ -197,7 +207,7 @@ class DualVisionApp(gr.Blocks):
             .gallery.svelte-l4wpk0 img {{    /* make examples gallery tiles square */
                 width: calc(100vw / 8);
                 height: calc(100vw / 8);
-                clip-path: inset(0 0 0 0);  /* remove slider line from previews */
+                clip-path: inset(0 0 0 0);   /* remove slider line from previews */
             }}
             .gallery.svelte-l4wpk0 span {{   /* remove slider line from previews */
                 visibility: hidden;
@@ -412,7 +422,7 @@ class DualVisionApp(gr.Blocks):
         """
         self.make_header()
 
-        results_state = gr.Gallery(visible=False)
+        results_state = gr.Gallery(visible=False, format="png")
 
         image_slider = self.make_slider()
         modality_selector_left, modality_selector_right = self.make_modality_selectors()
