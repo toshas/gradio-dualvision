@@ -9,6 +9,7 @@ app_file: app.py
 pinned: true
 license: cc-by-sa-4.0
 ---
+#### This thing ☝️ is metadata required at the top of README.md for hosting this exact repository as a Hugging Face Space 🤗. 
 
 # Gradio DualVision
 
