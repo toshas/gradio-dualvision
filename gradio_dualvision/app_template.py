@@ -37,6 +37,7 @@ import os
 import re
 
 import gradio as gr
+import spaces
 from PIL import Image
 from gradio.components.base import Component
 
@@ -55,6 +56,8 @@ class DualVisionApp(gr.Blocks):
         squeeze_canvas=True,
         squeeze_viewport_height_pct=75,
         key_original_image="Original",
+        spaces_zero_gpu_enabled=False,
+        spaces_zero_gpu_duration=None,
         slider_position=0.5,
         slider_line_color="#FFF",
         slider_line_width="4px",
@@ -74,6 +77,8 @@ class DualVisionApp(gr.Blocks):
             squeeze_canvas: When True, the image is fit to the browser viewport. When False, the image is fit to width (Default: `True`).
             squeeze_viewport_height_pct: Percentage of the browser viewport height (Default: `75`).
             key_original_image: Name of the key under which the input image is shown in the modality selectors (Default: `"Original"`).
+            spaces_zero_gpu_enabled: When True, the app wraps the processing function with the ZeroGPU decorator.
+            spaces_zero_gpu_duration: Defines an integer duration in seconds passed into the ZeroGPU decorator.
             slider_position: Position of the slider between 0 and 1 (Default: `0.5`).
             slider_line_color: Color of the slider line (Default: `"#FFF"`).
             slider_line_width: Width of the slider line (Default: `"4px"`).
@@ -98,6 +103,10 @@ class DualVisionApp(gr.Blocks):
         self.key_original_image = key_original_image
         self.slider_position = slider_position
         self.input_keys = None
+        if spaces_zero_gpu_enabled:
+            self.process_components = spaces.GPU(
+                self.process_components, duration=spaces_zero_gpu_duration
+            )
         self.head = ""
         self.head += """
             <script>
@@ -111,7 +120,7 @@ class DualVisionApp(gr.Blocks):
 
                     const parentDiv = oldButtonLeft.parentNode;
                     if (!parentDiv) return;
-                
+
                     const createButton = (referenceButton, text, href) => {
                         let newButton = referenceButton.cloneNode(true);
                         newButton.href = href;
@@ -122,15 +131,15 @@ class DualVisionApp(gr.Blocks):
                         newButton.style.cursor = "pointer";
                         return newButton;
                     };
-                
+
                     const newButton0 = createButton(oldButtonRight, "Built with Gradio DualVision", "https://github.com/toshas/gradio-dualvision");
                     const newButton1 = createButton(oldButtonRight, "Template by Anton Obukhov", "https://www.obukhov.ai");
                     const newButton2 = createButton(oldButtonRight, "Licensed under CC BY-SA 4.0", "http://creativecommons.org/licenses/by-sa/4.0/");
-                
+
                     const separatorDiv = document.createElement("div");
                     separatorDiv.className = "svelte-1rjryqp";
                     separatorDiv.textContent = "·";
-                    
+
                     parentDiv.replaceChild(newButton0, oldButtonLeft);
                     parentDiv.replaceChild(newButton1, oldButtonRight);
                     parentDiv.appendChild(separatorDiv);
