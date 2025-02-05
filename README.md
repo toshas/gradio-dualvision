@@ -49,6 +49,22 @@ Check out the template image processing [app.py](app.py); copy it and start modi
 4. Implement `build_user_components` and `process` methods, and optionally `make_header`.
 5. Launch the app!
 
+## DualVisionApp API
+
+- `title`: Title of the application (str, required).
+- `examples_path`: Base path where examples will be searched (Default: `"examples"`).
+- `examples_per_page`: How many examples to show at the bottom of the app (Default: `5`).
+- `examples_cache`: Examples caching policy, corresponding to `cache_examples` argument of gradio.Examples (Default: `"lazy"`).
+- `squeeze_canvas`: When True, the image is fit to the browser viewport. When False, the image is fit to width (Default: `True`).
+- `squeeze_viewport_height_pct`: Percentage of the browser viewport height (Default: `75`).
+- `key_original_image`: Name of the key under which the input image is shown in the modality selectors (Default: `"Original"`).
+- `slider_position`: Position of the slider between 0 and 1 (Default: `0.5`).
+- `slider_line_color`: Color of the slider line (Default: `"#FFF"`).
+- `slider_line_width`: Width of the slider line (Default: `"4px"`).
+- `slider_arrows_color`: Color of the slider arrows (Default: `"#FFF"`).
+- `slider_arrows_width`: Width of the slider arrows (Default: `2px`).
+- `**kwargs`: Any other arguments that Gradio Blocks class can take.
+
 ## Real talk
 
 **Q: What is the idea behind this template?**<br>
