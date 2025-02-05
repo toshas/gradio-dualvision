@@ -55,6 +55,7 @@ class DualVisionApp(gr.Blocks):
         examples_cache="lazy",
         squeeze_canvas=True,
         squeeze_viewport_height_pct=75,
+        left_selector_visible=False,
         key_original_image="Original",
         spaces_zero_gpu_enabled=False,
         spaces_zero_gpu_duration=None,
@@ -76,6 +77,7 @@ class DualVisionApp(gr.Blocks):
             examples_cache: Examples caching policy, corresponding to `cache_examples` argument of gradio.Examples (Default: `"lazy"`).
             squeeze_canvas: When True, the image is fit to the browser viewport. When False, the image is fit to width (Default: `True`).
             squeeze_viewport_height_pct: Percentage of the browser viewport height (Default: `75`).
+            left_selector_visible: Whether controls for changing modalities in the left part of the slider are visible (Default: `False`).
             key_original_image: Name of the key under which the input image is shown in the modality selectors (Default: `"Original"`).
             spaces_zero_gpu_enabled: When True, the app wraps the processing function with the ZeroGPU decorator.
             spaces_zero_gpu_duration: Defines an integer duration in seconds passed into the ZeroGPU decorator.
@@ -103,6 +105,7 @@ class DualVisionApp(gr.Blocks):
         self.key_original_image = key_original_image
         self.slider_position = slider_position
         self.input_keys = None
+        self.left_selector_visible = left_selector_visible
         if spaces_zero_gpu_enabled:
             self.process_components = spaces.GPU(
                 self.process_components, duration=spaces_zero_gpu_duration
@@ -211,6 +214,10 @@ class DualVisionApp(gr.Blocks):
             }}
             .gallery.svelte-l4wpk0 span {{   /* remove slider line from previews */
                 visibility: hidden;
+            }}
+            #selector_right {{
+                display: flex;
+                justify-content: flex-end;
             }}
             h1, h2, h3 {{                    /* center markdown headings */
                 text-align: center;
@@ -516,6 +523,7 @@ class DualVisionApp(gr.Blocks):
                 key="Left",
                 show_label=False,
                 container=False,
+                visible=self.left_selector_visible,
             )
             modality_selector_right = Radio(
                 choices=None,
@@ -524,6 +532,7 @@ class DualVisionApp(gr.Blocks):
                 key="Right",
                 show_label=False,
                 container=False,
+                elem_id="selector_right",
             )
         return modality_selector_left, modality_selector_right
 

@@ -57,6 +57,7 @@ Check out the template image processing [app.py](app.py); copy it and start modi
 - `examples_cache`: Examples caching policy, corresponding to `cache_examples` argument of gradio.Examples (Default: `"lazy"`).
 - `squeeze_canvas`: When True, the image is fit to the browser viewport. When False, the image is fit to width (Default: `True`).
 - `squeeze_viewport_height_pct`: Percentage of the browser viewport height (Default: `75`).
+- `left_selector_visible`: Whether controls for changing modalities in the left part of the slider are visible (Default: `False`).
 - `key_original_image`: Name of the key under which the input image is shown in the modality selectors (Default: `"Original"`).
 - `spaces_zero_gpu_enabled`: When True, the app wraps the processing function with the ZeroGPU decorator.
 - `spaces_zero_gpu_duration`: Defines an integer duration in seconds passed into the ZeroGPU decorator.
