@@ -47,7 +47,11 @@ from gradio_imageslider.imageslider import image_tuple, image_variants
 
 
 class ImageSliderPlusData(GradioRootModel):
-    root: Union[Tuple[FileData | None, FileData | None, JsonData | None], None]
+    root: Union[
+        Tuple[FileData | None, FileData | None, JsonData | None],
+        Tuple[FileData | None, FileData | None],
+        None,
+    ]
 
 
 class ImageSliderPlus(ImageSlider):
@@ -61,7 +65,6 @@ class ImageSliderPlus(ImageSlider):
             raise ValueError("ImageSliderPlus can be only created with type='filepath'")
         if im is None:
             return im
-        fmt = im.format
         path = processing_utils.save_pil_to_cache(
             im, cache_dir=self.GRADIO_CACHE, format="png"
         )
@@ -113,7 +116,7 @@ class ImageSliderPlus(ImageSlider):
         out_0 = self._preprocess_image(x.root[0])
         out_1 = self._preprocess_image(x.root[1])
 
-        if x.root[2] is not None:
+        if len(x.root) > 2 and x.root[2] is not None:
             with open(out_0 + ".settings.json", "w") as fp:
                 json.dump(x.root[2].root, fp)
 
