@@ -1,0 +1,3 @@
+gradio==4.44.1
+gradio_imageslider==0.0.20
+spaces
