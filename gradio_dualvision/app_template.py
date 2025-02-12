@@ -238,21 +238,17 @@ class DualVisionApp(gr.Blocks):
                     window.addEventListener('resize', squeezeViewport);
                 
                     // fixes gradio-imageslider wrong position behavior when using fitting to content by triggering resize
-                    let observerSlider = new MutationObserver((mutationsList, observer) => {{
-                        let slider = document.querySelector(".slider");
-                        if (!slider) {{
-                            return;
-                        }}
-                        observer.disconnect();
-                        let observerSliderImage = new MutationObserver((mutations) => {{
-                            let img = slider.querySelector("img");
-                            if (img && img.complete) {{
+                    let observer = new MutationObserver((mutationsList) => {{
+                        let img = document.querySelector(".slider img");
+                        if (img) {{
+                            if (img.complete) {{
                                 window.dispatchEvent(new Event('resize'));
+                            }} else {{
+                                img.onload = () => window.dispatchEvent(new Event('resize'));
                             }}
-                        }});
-                        observerSliderImage.observe(slider, {{ childList: true, subtree: true }});
+                        }}
                     }});
-                    observerSlider.observe(document.body, {{ childList: true, subtree: true }});
+                    observer.observe(document.body, {{ childList: true, subtree: true }});
                 </script>
             """
             self.css += f"""
