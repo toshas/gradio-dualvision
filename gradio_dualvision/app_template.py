@@ -231,6 +231,7 @@ class DualVisionApp(gr.Blocks):
                                 const parentHeight = info.clientHeight;
                                 images.forEach((img) => {{
                                     img.style.maxHeight = `${{(parentHeight * {squeeze_viewport_height_pct}) / 100}}px`;
+                                    window.parentIFrame.size(0, null);  // tighten the layout
                                 }});
                             }});
                         }}
