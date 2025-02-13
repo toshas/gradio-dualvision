@@ -157,6 +157,9 @@ class DualVisionApp(gr.Blocks):
                 </script>
             """
         self.css = f"""
+            body {{                      /* tighten the layout */
+                flex-grow: 0 !important;
+            }}
             .sliderrow {{                /* center the slider */
                 display: flex;
                 justify-content: center;
@@ -225,29 +228,30 @@ class DualVisionApp(gr.Blocks):
                 <script>
                     // fixes vertical size of the component when used inside of iframeResizer (on spaces)
                     function squeezeViewport() {{
-                        if (typeof window.parentIFrame !== "undefined") {{
-                            const images = document.querySelectorAll('.slider img');
-                            window.parentIFrame.getPageInfo((info) => {{
-                                const parentHeight = info.clientHeight;
-                                images.forEach((img) => {{
-                                    img.style.maxHeight = `${{(parentHeight * {squeeze_viewport_height_pct}) / 100}}px`;
-                                    window.parentIFrame.size(0, null);  // tighten the layout
-                                }});
+                        if (typeof window.parentIFrame === "undefined") return;
+                        const images = document.querySelectorAll('.slider img');
+                        window.parentIFrame.getPageInfo((info) => {{
+                            images.forEach((img) => {{
+                                const imgMaxHeightNew = (info.clientHeight * {squeeze_viewport_height_pct}) / 100;
+                                img.style.maxHeight = `${{imgMaxHeightNew}}px`;
+                                // window.parentIFrame.size(0, null);  // tighten the layout; body's flex-grow: 0 is less intrusive
                             }});
-                        }}
+                        }});
                     }}
                     window.addEventListener('resize', squeezeViewport);
-                
+
                     // fixes gradio-imageslider wrong position behavior when using fitting to content by triggering resize
                     let observer = new MutationObserver((mutationsList) => {{
-                        let img = document.querySelector(".slider img");
-                        if (img) {{
+                        const images = document.querySelectorAll('.slider img');
+                        images.forEach((img) => {{
                             if (img.complete) {{
                                 window.dispatchEvent(new Event('resize'));
                             }} else {{
-                                img.onload = () => window.dispatchEvent(new Event('resize'));
+                                img.onload = () => {{
+                                    window.dispatchEvent(new Event('resize'));
+                                }}
                             }}
-                        }}
+                        }});
                     }});
                     observer.observe(document.body, {{ childList: true, subtree: true }});
                 </script>
