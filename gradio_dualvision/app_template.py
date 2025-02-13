@@ -32,6 +32,7 @@ from PIL import Image
 from gradio.components.base import Component
 
 from .gradio_patches.examples import Examples
+from .gradio_patches.gallery import Gallery
 from .gradio_patches.imagesliderplus import ImageSliderPlus
 from .gradio_patches.radio import Radio
 
@@ -99,6 +100,8 @@ class DualVisionApp(gr.Blocks):
         self.key_original_image = key_original_image
         self.slider_position = slider_position
         self.input_keys = None
+        self.input_cls = None
+        self.input_kwargs = None
         self.left_selector_visible = left_selector_visible
         self.advanced_settings_can_be_half_width = advanced_settings_can_be_half_width
         if spaces_zero_gpu_enabled:
@@ -353,7 +356,12 @@ class DualVisionApp(gr.Blocks):
             )
         if any(k not in results_settings for k in self.input_keys):
             raise gr.Error(f"Mismatching setgings keys")
-        results_settings = {k: results_settings[k] for k in self.input_keys}
+        results_settings = {
+            k: cls(**ctor_args, value=results_settings[k])
+            for k, cls, ctor_args in zip(
+                self.input_keys, self.input_cls, self.input_kwargs
+            )
+        }
 
         results_dict = {
             self.key_original_image: image_in,
@@ -440,7 +448,7 @@ class DualVisionApp(gr.Blocks):
         """
         self.make_header()
 
-        results_state = gr.Gallery(visible=False, format="png")
+        results_state = Gallery(visible=False)
 
         image_slider = self.make_slider()
 
@@ -598,6 +606,11 @@ class DualVisionApp(gr.Blocks):
             with gr.Row():
                 btn_clear, btn_submit = self.make_buttons()
         self.input_keys = list(user_components.keys())
+        self.input_cls = list(v.__class__ for v in user_components.values())
+        self.input_kwargs = [
+            {k: v for k, v in c.constructor_args.items() if k not in ("value")}
+            for c in user_components.values()
+        ]
         return user_components, btn_clear, btn_submit
 
     def make_buttons(self):

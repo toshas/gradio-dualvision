@@ -49,7 +49,7 @@ class ImageSliderPlus(ImageSlider):
     data_model = ImageSliderPlusData
 
     def as_example(self, value):
-        return self.process_example_dims(value, 256)
+        return self.process_example_dims(value, 256, True)
 
     def _format_image(self, im: Image):
         if self.type != "filepath":
@@ -117,15 +117,23 @@ class ImageSliderPlus(ImageSlider):
         return out_0, out_1
 
     @staticmethod
-    def resize_and_save(image_path: str, max_dim: int) -> str:
+    def resize_and_save(image_path: str, max_dim: int, square: bool = False) -> str:
         img = Image.open(image_path).convert("RGB")
+        if square:
+            width, height = img.size
+            min_side = min(width, height)
+            left = (width - min_side) // 2
+            top = (height - min_side) // 2
+            right = left + min_side
+            bottom = top + min_side
+            img = img.crop((left, top, right, bottom))
         img.thumbnail((max_dim, max_dim))
         temp_file = tempfile.NamedTemporaryFile(suffix=".webp", delete=False)
         img.save(temp_file.name, "WEBP")
         return temp_file.name
 
     def process_example_dims(
-        self, input_data: tuple[str | Path | None] | None, max_dim: Optional[int] = None
+        self, input_data: tuple[str | Path | None] | None, max_dim: Optional[int] = None, square: bool = False
     ) -> image_tuple:
         if input_data is None:
             return None
@@ -134,8 +142,8 @@ class ImageSliderPlus(ImageSlider):
             return input_data[0]
         if max_dim is not None:
             input_data = (
-                self.resize_and_save(input_data[0], max_dim),
-                self.resize_and_save(input_data[1], max_dim),
+                self.resize_and_save(input_data[0], max_dim, square),
+                self.resize_and_save(input_data[1], max_dim, square),
             )
         return (
             self.move_resource_to_block_cache(input_data[0]),
