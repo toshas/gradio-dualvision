@@ -38,6 +38,7 @@ This very space running live on Hugging Face Spaces:
 
 A few real examples:
 - [Marigold Depth](https://huggingface.co/spaces/prs-eth/marigold)
+- [Thera Superresolution](https://huggingface.co/spaces/prs-eth/thera)
 
 ## Quick start
 
