@@ -23,7 +23,7 @@ class ImageFiltersApp(DualVisionApp):
             ## {self.title}
             """
         )
-        with gr.Row(elem_classes="markdown-verbose"):
+        with gr.Row(elem_classes="remove-elements"):
             gr.Markdown(
                 f"""
                 <p align="center">
