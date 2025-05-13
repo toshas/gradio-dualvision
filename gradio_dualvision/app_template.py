@@ -148,7 +148,20 @@ class DualVisionApp(gr.Blocks):
                 });
                 observerFooterButtons.observe(document.body, { childList: true, subtree: true });
             </script>
+            <script>
+                window.addEventListener("message", (event) => {
+                    if (event.data?.type === "markdown-verbose") {
+                        document.querySelectorAll(".markdown-verbose").forEach(el => el.remove());
+                    }
+                });
+            </script>
         """
+        # Invoke like this in the parent page:
+        #     document.querySelectorAll("iframe").forEach((iframe) => {
+        #         iframe.addEventListener("load", () => {
+        #             iframe.contentWindow.postMessage({ type: "markdown-verbose" }, "*");
+        #         });
+        #     });
         if kwargs.get("analytics_enabled") is not False:
             self.head += f"""
                 <script async src="https://www.googletagmanager.com/gtag/js?id=G-1FWSVCGZTG"></script>

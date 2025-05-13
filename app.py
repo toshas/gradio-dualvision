@@ -21,6 +21,10 @@ class ImageFiltersApp(DualVisionApp):
         gr.Markdown(
             f"""
             ## {self.title}
+            """
+        )
+        gr.Markdown(
+            f"""
             <p align="center">
             <a title="Github" href="https://github.com/toshas/gradio-dualvision" target="_blank" rel="noopener noreferrer" style="display: inline-block;">
                 <img src="https://img.shields.io/github/stars/toshas/gradio-dualvision?label=GitHub%20%E2%98%85&logo=github&color=C8C" alt="badge-github-stars">
@@ -34,7 +38,8 @@ class ImageFiltersApp(DualVisionApp):
                 Use the slider to reveal areas of interest.
                 Use the radio-buttons to switch between modalities.
             </p>
-        """
+            """,
+            elem_classes="markdown-verbose",
         )
 
     def build_user_components(self):
