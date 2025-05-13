@@ -23,24 +23,24 @@ class ImageFiltersApp(DualVisionApp):
             ## {self.title}
             """
         )
-        gr.Markdown(
-            f"""
-            <p align="center">
-            <a title="Github" href="https://github.com/toshas/gradio-dualvision" target="_blank" rel="noopener noreferrer" style="display: inline-block;">
-                <img src="https://img.shields.io/github/stars/toshas/gradio-dualvision?label=GitHub%20%E2%98%85&logo=github&color=C8C" alt="badge-github-stars">
-            </a>
-            <a title="Social" href="https://twitter.com/antonobukhov1" target="_blank" rel="noopener noreferrer" style="display: inline-block;">
-                <img src="https://shields.io/twitter/follow/:?label=Subscribe%20for%20updates!" alt="social">
-            </a>
-            </p>                    
-            <p align="center" style="margin-top: 0px;">
-                Upload a photo or select an example to process the input in real time.
-                Use the slider to reveal areas of interest.
-                Use the radio-buttons to switch between modalities.
-            </p>
-            """,
-            elem_classes="markdown-verbose",
-        )
+        with gr.Row(elem_classes="markdown-verbose"):
+            gr.Markdown(
+                f"""
+                <p align="center">
+                <a title="Github" href="https://github.com/toshas/gradio-dualvision" target="_blank" rel="noopener noreferrer" style="display: inline-block;">
+                    <img src="https://img.shields.io/github/stars/toshas/gradio-dualvision?label=GitHub%20%E2%98%85&logo=github&color=C8C" alt="badge-github-stars">
+                </a>
+                <a title="Social" href="https://twitter.com/antonobukhov1" target="_blank" rel="noopener noreferrer" style="display: inline-block;">
+                    <img src="https://shields.io/twitter/follow/:?label=Subscribe%20for%20updates!" alt="social">
+                </a>
+                </p>
+                <p align="center" style="margin-top: 0px;">
+                    Upload a photo or select an example to process the input in real time.
+                    Use the slider to reveal areas of interest.
+                    Use the radio-buttons to switch between modalities.
+                </p>
+                """
+            )
 
     def build_user_components(self):
         """
