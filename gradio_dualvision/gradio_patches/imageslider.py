@@ -27,92 +27,93 @@ import tempfile
 from pathlib import Path
 from typing import Union, Tuple, Optional
 
-import numpy as np
+import gradio
 from PIL import Image
-from gradio import processing_utils
-from gradio import utils
-from gradio.data_classes import FileData, GradioRootModel, JsonData
+from gradio import image_utils, processing_utils
 from gradio_client import utils as client_utils
-from gradio_imageslider import ImageSlider
-from gradio_imageslider.imageslider import image_tuple, image_variants
+from gradio.components.imageslider import image_tuple
+from gradio.data_classes import GradioRootModel, JsonData, ImageData
 
 
 class ImageSliderPlusData(GradioRootModel):
     root: Union[
-        Tuple[FileData | None, FileData | None, JsonData | None],
-        Tuple[FileData | None, FileData | None],
+        Tuple[ImageData | None, ImageData | None, JsonData | None],
+        Tuple[ImageData | None, ImageData | None],
         None,
     ]
 
 
-class ImageSliderPlus(ImageSlider):
+class ImageSlider(gradio.ImageSlider):
     data_model = ImageSliderPlusData
 
-    def as_example(self, value):
-        return self.process_example_dims(value, 256, True)
-
-    def _format_image(self, im: Image):
-        if self.type != "filepath":
-            raise ValueError("ImageSliderPlus can be only created with type='filepath'")
-        if im is None:
-            return im
-        format = "png" if im.mode == "I;16" else "webp"
-        path = processing_utils.save_pil_to_cache(
-            im, cache_dir=self.GRADIO_CACHE, format=format
-        )
-        self.temp_files.add(path)
-        return path
-
-    def _postprocess_image(self, y: image_variants):
-        if isinstance(y, np.ndarray):
-            format = "png" if y.dtype == np.uint16 and y.squeeze().ndim == 2 else "webp"
-            path = processing_utils.save_img_array_to_cache(
-                y, cache_dir=self.GRADIO_CACHE, format=format
-            )
-        elif isinstance(y, Image.Image):
-            format = "png" if y.mode == "I;16" else "webp"
-            path = processing_utils.save_pil_to_cache(
-                y, cache_dir=self.GRADIO_CACHE, format=format
-            )
-        elif isinstance(y, (str, Path)):
-            path = y if isinstance(y, str) else str(utils.abspath(y))
-        else:
-            raise ValueError("Cannot process this value as an Image")
-
-        return path
+    # def _postprocess_image(self, y: np.ndarray | PIL.Image.Image | str | Path | None):
+    #     if isinstance(y, np.ndarray):
+    #         format = "png" if y.dtype == np.uint16 and y.squeeze().ndim == 2 else "webp"
+    #         path = processing_utils.save_img_array_to_cache(
+    #             y, cache_dir=self.GRADIO_CACHE, format=format
+    #         )
+    #     elif isinstance(y, Image.Image):
+    #         format = "png" if y.mode == "I;16" else "webp"
+    #         path = processing_utils.save_pil_to_cache(
+    #             y, cache_dir=self.GRADIO_CACHE, format=format
+    #         )
+    #     elif isinstance(y, (str, Path)):
+    #         path = y if isinstance(y, str) else str(utils.abspath(y))
+    #     else:
+    #         raise ValueError("Cannot process this value as an Image")
+    #
+    #     return path
 
     def postprocess(
         self,
-        y: image_tuple,
+        value: image_tuple,
     ) -> ImageSliderPlusData:
-        if y is None:
+        if value is None:
             return ImageSliderPlusData(root=(None, None, None))
 
         settings = None
-        if type(y[0]) is str:
-            settings_candidate_path = y[0] + ".settings.json"
+        if type(value[0]) is str:
+            settings_candidate_path = value[0] + ".settings.json"
             if os.path.isfile(settings_candidate_path):
                 with open(settings_candidate_path, "r") as fp:
                     settings = json.load(fp)
 
         return ImageSliderPlusData(
             root=(
-                FileData(path=self._postprocess_image(y[0])),
-                FileData(path=self._postprocess_image(y[1])),
+                image_utils.postprocess_image(
+                    value[0], cache_dir=self.GRADIO_CACHE, format=self.format
+                ),
+                image_utils.postprocess_image(
+                    value[1], cache_dir=self.GRADIO_CACHE, format=self.format
+                ),
                 JsonData(settings),
             ),
         )
 
-    def preprocess(self, x: ImageSliderPlusData) -> image_tuple:
-        if x is None:
-            return x
+    def preprocess(self, payload: ImageSliderPlusData) -> image_tuple:
+        if payload is None:
+            return None
+        if payload.root is None:
+            raise ValueError("Payload is None.")
 
-        out_0 = self._preprocess_image(x.root[0])
-        out_1 = self._preprocess_image(x.root[1])
+        out_0 = image_utils.preprocess_image(
+            payload.root[0],
+            cache_dir=self.GRADIO_CACHE,
+            format=self.format,
+            image_mode=self.image_mode,
+            type=self.type,
+        )
+        out_1 = image_utils.preprocess_image(
+            payload.root[1],
+            cache_dir=self.GRADIO_CACHE,
+            format=self.format,
+            image_mode=self.image_mode,
+            type=self.type,
+        )
 
-        if len(x.root) > 2 and x.root[2] is not None:
+        if len(payload.root) > 2 and payload.root[2] is not None:
             with open(out_0 + ".settings.json", "w") as fp:
-                json.dump(x.root[2].root, fp)
+                json.dump(payload.root[2].root, fp)
 
         return out_0, out_1
 
@@ -153,4 +154,5 @@ class ImageSliderPlus(ImageSlider):
     def process_example(
         self, input_data: tuple[str | Path | None] | None
     ) -> image_tuple:
-        return self.process_example_dims(input_data)
+        return self.process_example_dims(input_data, 256, True)
+
