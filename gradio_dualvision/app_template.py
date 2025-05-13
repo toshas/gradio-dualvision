@@ -150,8 +150,11 @@ class DualVisionApp(gr.Blocks):
             </script>
             <script>
                 window.addEventListener("message", (event) => {
+                    console.log("Received event:", event);
                     if (event.data?.type === "markdown-verbose") {
                         document.querySelectorAll(".markdown-verbose").forEach(el => el.remove());
+                        event.source?.postMessage({ type: "ack-markdown-verbose", source: "gradio-app" }, event.origin);
+                        console.log("Received event markdown-verbose, sent response back:", event);
                     }
                 });
             </script>
