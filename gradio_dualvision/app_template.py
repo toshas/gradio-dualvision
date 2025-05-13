@@ -111,31 +111,23 @@ class DualVisionApp(gr.Blocks):
         self.head = ""
         self.head += """
             <script>
-                // window.addEventListener("message", (event) => {
-                //     if (event.data?.type === "markdown-verbose") {
-                //         const removeMarkdownVerbose = () => {
-                //           const targets = document.querySelectorAll(".markdown-verbose");
-                //           targets.forEach(el => el.remove());
-                //         };
-                //         
-                //         removeMarkdownVerbose();                    
-                //     
-                //         document.querySelectorAll(".markdown-verbose").forEach(el => el.remove());
-                //         event.source?.postMessage({ type: "ack-markdown-verbose", source: "gradio-app" }, event.origin);
-                //         console.log("Received event markdown-verbose");
-                //     }
-                // });
-                (
-                    function() {
-                        const removeMarkdownVerbose = () => {
-                            document.querySelectorAll(".remove-elements").forEach(el => el.remove());
+                window.addEventListener("message", (event) => {
+                    if (event.data?.type === "remove-elements") {
+                        const removeTargets = () => {
+                            const targets = document.querySelectorAll(".remove-elements");
+                            targets.forEach(el => el.remove());
                         };
-                        removeMarkdownVerbose();
-                        const observer = new MutationObserver(removeMarkdownVerbose);
+                        
+                        removeTargets();                    
+                        const observer = new MutationObserver(() => {
+                            removeTargets();
+                        });
                         observer.observe(document.body, { childList: true, subtree: true });
-                        window.parent?.postMessage({ type: "ack-remove-elements", source: "gradio-app" }, "*");
-                        console.log("Received event: remove-elements");
-                })();
+    
+                        event.source?.postMessage({ type: "ack-remove-elements", source: "gradio-app" }, event.origin);
+                        console.log("Processed event remove-elements");
+                    }
+                });
             </script>
             <script>
                 let observerFooterButtons = new MutationObserver((mutationsList, observer) => {
