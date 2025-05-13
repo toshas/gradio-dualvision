@@ -111,6 +111,33 @@ class DualVisionApp(gr.Blocks):
         self.head = ""
         self.head += """
             <script>
+                // window.addEventListener("message", (event) => {
+                //     if (event.data?.type === "markdown-verbose") {
+                //         const removeMarkdownVerbose = () => {
+                //           const targets = document.querySelectorAll(".markdown-verbose");
+                //           targets.forEach(el => el.remove());
+                //         };
+                //         
+                //         removeMarkdownVerbose();                    
+                //     
+                //         document.querySelectorAll(".markdown-verbose").forEach(el => el.remove());
+                //         event.source?.postMessage({ type: "ack-markdown-verbose", source: "gradio-app" }, event.origin);
+                //         console.log("Received event markdown-verbose");
+                //     }
+                // });
+                (
+                    function() {
+                        const removeMarkdownVerbose = () => {
+                            document.querySelectorAll(".remove-elements").forEach(el => el.remove());
+                        };
+                        removeMarkdownVerbose();
+                        const observer = new MutationObserver(removeMarkdownVerbose);
+                        observer.observe(document.body, { childList: true, subtree: true });
+                        window.parent?.postMessage({ type: "ack-remove-elements", source: "gradio-app" }, "*");
+                        console.log("Received event: remove-elements");
+                })();
+            </script>
+            <script>
                 let observerFooterButtons = new MutationObserver((mutationsList, observer) => {
                     const oldButtonLeft = document.querySelector(".show-api");
                     const oldButtonRight = document.querySelector(".built-with");
@@ -148,23 +175,7 @@ class DualVisionApp(gr.Blocks):
                 });
                 observerFooterButtons.observe(document.body, { childList: true, subtree: true });
             </script>
-            <script>
-                window.addEventListener("message", (event) => {
-                    console.log("Received event:", event);
-                    if (event.data?.type === "markdown-verbose") {
-                        document.querySelectorAll(".markdown-verbose").forEach(el => el.remove());
-                        event.source?.postMessage({ type: "ack-markdown-verbose", source: "gradio-app" }, event.origin);
-                        console.log("Received event markdown-verbose, sent response back:", event);
-                    }
-                });
-            </script>
         """
-        # Invoke like this in the parent page:
-        #     document.querySelectorAll("iframe").forEach((iframe) => {
-        #         iframe.addEventListener("load", () => {
-        #             iframe.contentWindow.postMessage({ type: "markdown-verbose" }, "*");
-        #         });
-        #     });
         if kwargs.get("analytics_enabled") is not False:
             self.head += f"""
                 <script async src="https://www.googletagmanager.com/gtag/js?id=G-1FWSVCGZTG"></script>
