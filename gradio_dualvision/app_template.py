@@ -275,11 +275,15 @@ class DualVisionApp(gr.Blocks):
                     width: 100%;
                 }}
             """
-        kwargs["css"] = kwargs.get("css", "") + self.css
-        kwargs["head"] = kwargs.get("head", "") + self.head
         super().__init__(**kwargs)
         with self:
             self.make_interface()
+
+    def get_css(self):
+        return self.css
+
+    def get_head(self):
+        return self.head
 
     def process(self, image_in: Image.Image, **kwargs):
         """
