@@ -12,7 +12,7 @@ import numpy as np
 import PIL.Image
 from gradio_client.utils import is_http_url_like
 
-from gradio import processing_utils, utils, wasm_utils, image_utils
+from gradio import processing_utils, utils, image_utils
 from gradio.data_classes import FileData, ImageData
 
 
@@ -98,11 +98,7 @@ class Gallery(gradio.Gallery):
                     caption=caption,
                 )
 
-        if wasm_utils.IS_WASM:
-            for img in value:
-                output.append(_save(img))
-        else:
-            with ThreadPoolExecutor() as executor:
-                for o in executor.map(_save, value):
-                    output.append(o)
+        with ThreadPoolExecutor() as executor:
+            for o in executor.map(_save, value):
+                output.append(o)
         return GalleryData(root=output)
