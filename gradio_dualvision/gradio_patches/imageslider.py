@@ -28,8 +28,9 @@ from pathlib import Path
 from typing import Union, Tuple, Optional
 
 import gradio
+import numpy as np
 from PIL import Image
-from gradio import image_utils, processing_utils
+from gradio import image_utils
 from gradio_client import utils as client_utils
 from gradio.components.imageslider import image_tuple
 from gradio.data_classes import GradioRootModel, JsonData, ImageData
@@ -46,24 +47,6 @@ class ImageSliderPlusData(GradioRootModel):
 class ImageSlider(gradio.ImageSlider):
     data_model = ImageSliderPlusData
 
-    # def _postprocess_image(self, y: np.ndarray | PIL.Image.Image | str | Path | None):
-    #     if isinstance(y, np.ndarray):
-    #         format = "png" if y.dtype == np.uint16 and y.squeeze().ndim == 2 else "webp"
-    #         path = processing_utils.save_img_array_to_cache(
-    #             y, cache_dir=self.GRADIO_CACHE, format=format
-    #         )
-    #     elif isinstance(y, Image.Image):
-    #         format = "png" if y.mode == "I;16" else "webp"
-    #         path = processing_utils.save_pil_to_cache(
-    #             y, cache_dir=self.GRADIO_CACHE, format=format
-    #         )
-    #     elif isinstance(y, (str, Path)):
-    #         path = y if isinstance(y, str) else str(utils.abspath(y))
-    #     else:
-    #         raise ValueError("Cannot process this value as an Image")
-    #
-    #     return path
-
     def postprocess(
         self,
         value: image_tuple,
@@ -78,13 +61,17 @@ class ImageSlider(gradio.ImageSlider):
                 with open(settings_candidate_path, "r") as fp:
                     settings = json.load(fp)
 
+        fn_format_selector = lambda x: "png" if (isinstance(x, np.ndarray) and x.dtype == np.uint16 and x.squeeze().ndim == 2) or (isinstance(x, Image.Image) and x.mode == "I;16") else self.format
+        format_0 = fn_format_selector(value[0])
+        format_1 = fn_format_selector(value[1])
+
         return ImageSliderPlusData(
             root=(
                 image_utils.postprocess_image(
-                    value[0], cache_dir=self.GRADIO_CACHE, format=self.format
+                    value[0], cache_dir=self.GRADIO_CACHE, format=format_0
                 ),
                 image_utils.postprocess_image(
-                    value[1], cache_dir=self.GRADIO_CACHE, format=self.format
+                    value[1], cache_dir=self.GRADIO_CACHE, format=format_1
                 ),
                 JsonData(settings),
             ),
