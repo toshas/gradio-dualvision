@@ -206,19 +206,17 @@ class DualVisionApp(gr.Blocks):
             .row_reverse {{
                 flex-direction: row-reverse;
             }}
-            .gallery.svelte-11djrz8 {{        /* make examples gallery tiles square */
+            .gallery.svelte-a9zvka {{        /* make examples gallery tiles square */
+                min-width: max({gallery_thumb_min_size}, calc(100vw / 8));
+                min-height: max({gallery_thumb_min_size}, calc(100vw / 8));
                 width: max({gallery_thumb_min_size}, calc(100vw / 8));
                 height: max({gallery_thumb_min_size}, calc(100vw / 8));
             }}
-            .gallery.svelte-11djrz8 img {{    /* make examples gallery tiles square */
+            .gallery.svelte-p5q82i img {{    /* make examples gallery tiles square */
+                min-width: max({gallery_thumb_min_size}, calc(100vw / 8));
+                min-height: max({gallery_thumb_min_size}, calc(100vw / 8));
                 width: max({gallery_thumb_min_size}, calc(100vw / 8));
                 height: max({gallery_thumb_min_size}, calc(100vw / 8));
-            }}
-            .gallery.svelte-11djrz8 img {{    /* remove slider line from previews */
-                clip-path: inset(0 0 0 0);
-            }}
-            .gallery.svelte-11djrz8 span {{   /* remove slider line from previews */
-                visibility: hidden;
             }}
             h1, h2, h3 {{                    /* center markdown headings */
                 text-align: center;
