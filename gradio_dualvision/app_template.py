@@ -27,13 +27,21 @@ import os
 import re
 
 import gradio as gr
+from .version import __version__
+
+if __version__ != gr.__version__:
+    raise gr.Error(
+        f"gradio version ({gr.__version__}) must match gradio-dualvision version ({__version__}). "
+        f"Check the metadata of the README.md in your demo (sdk_version field)."
+    )
+
 import spaces
-from PIL import Image
-from gradio.components.base import Component
+from PIL import Image as PILImage
+from gradio import Component, ImageSlider
 
 from .gradio_patches.examples import Examples
 from .gradio_patches.gallery import Gallery
-from .gradio_patches.imagesliderplus import ImageSliderPlus
+from .gradio_patches.image import Image
 from .gradio_patches.radio import Radio
 
 
@@ -51,11 +59,10 @@ class DualVisionApp(gr.Blocks):
         key_original_image="Original",
         spaces_zero_gpu_enabled=False,
         spaces_zero_gpu_duration=None,
-        slider_position=0.5,
+        slider_position=50,
         slider_line_color="#FFF",
         slider_line_width="4px",
         slider_arrows_color="#FFF",
-        slider_arrows_width="2px",
         gallery_thumb_min_size="96px",
         **kwargs,
     ):
@@ -75,11 +82,10 @@ class DualVisionApp(gr.Blocks):
             advanced_settings_can_be_half_width: Whether allow placing advanced settings dropdown in half-column space whenever possible (Default: `True`).
             spaces_zero_gpu_enabled: When True, the app wraps the processing function with the ZeroGPU decorator.
             spaces_zero_gpu_duration: Defines an integer duration in seconds passed into the ZeroGPU decorator.
-            slider_position: Position of the slider between 0 and 1 (Default: `0.5`).
+            slider_position: Position of the slider between 0 and 100 (Default: `50`).
             slider_line_color: Color of the slider line (Default: `"#FFF"`).
             slider_line_width: Width of the slider line (Default: `"4px"`).
             slider_arrows_color: Color of the slider arrows (Default: `"#FFF"`).
-            slider_arrows_width: Width of the slider arrows (Default: `2px`).
             gallery_thumb_min_size: Min size of the gallery thumbnail (Default: `96px`).
             **kwargs: Any other arguments that Gradio Blocks class can take.
         """
@@ -90,8 +96,8 @@ class DualVisionApp(gr.Blocks):
             )
         if not os.path.isdir(examples_path):
             raise gr.Error("`examples_path` should be a directory.")
-        if not 0 <= slider_position <= 1:
-            raise gr.Error("`slider_position` should be between 0 and 1.")
+        if not 0 <= slider_position <= 100:
+            raise gr.Error("`slider_position` should be between 0 and 100.")
         kwargs = {k: v for k, v in kwargs.items()}
         kwargs["title"] = title
         self.examples_path = examples_path
@@ -108,8 +114,9 @@ class DualVisionApp(gr.Blocks):
             self.process_components = spaces.GPU(
                 self.process_components, duration=spaces_zero_gpu_duration
             )
-        self.head = ""
-        self.head += """
+        # fmt: off
+        self.head = (
+            """
             <script>
                 window.addEventListener("message", (event) => {
                     if (event.data?.type === "remove-elements") {
@@ -131,14 +138,16 @@ class DualVisionApp(gr.Blocks):
             </script>
             <script>
                 let observerFooterButtons = new MutationObserver((mutationsList, observer) => {
-                    const oldButtonLeft = document.querySelector(".show-api");
-                    const oldButtonRight = document.querySelector(".built-with");
-                    if (!oldButtonRight || !oldButtonLeft) {
+                    const origButtonShowAPI = document.querySelector(".show-api");
+                    const origButtonBuiltWith = document.querySelector(".built-with");
+                    const origButtonSettings = document.querySelector(".settings");
+                    const origSeparatorDiv = document.querySelector(".divider");
+                    if (!origButtonBuiltWith || !origButtonShowAPI || !origButtonSettings || !origSeparatorDiv) {
                         return;
                     }
                     observer.disconnect();
 
-                    const parentDiv = oldButtonLeft.parentNode;
+                    const parentDiv = origButtonShowAPI.parentNode;
                     if (!parentDiv) return;
 
                     const createButton = (referenceButton, text, href) => {
@@ -152,22 +161,26 @@ class DualVisionApp(gr.Blocks):
                         return newButton;
                     };
 
-                    const newButton0 = createButton(oldButtonRight, "Built with Gradio DualVision", "https://github.com/toshas/gradio-dualvision");
-                    const newButton1 = createButton(oldButtonRight, "Template by Anton Obukhov", "https://www.obukhov.ai");
-                    const newButton2 = createButton(oldButtonRight, "Licensed under CC BY-SA 4.0", "http://creativecommons.org/licenses/by-sa/4.0/");
+                    document.querySelectorAll(".divider").forEach(divider => {
+                        divider.style.marginLeft = "var(--size-2)";
+                        divider.style.marginRight = "var(--size-2)";
+                    });
+                    
+                    const newButtonBuiltWith = createButton(origButtonBuiltWith, "Built with Gradio DualVision v""" + __version__ + """", "https://github.com/toshas/gradio-dualvision");
+                    const newButtonTemplateBy = createButton(origButtonBuiltWith, "Template by Anton Obukhov", "https://www.obukhov.ai");
+                    const newButtonLicensed = createButton(origButtonBuiltWith, "Licensed under CC BY-SA 4.0", "http://creativecommons.org/licenses/by-sa/4.0/");
 
-                    const separatorDiv = document.createElement("div");
-                    separatorDiv.className = "svelte-1rjryqp";
-                    separatorDiv.textContent = "·";
-
-                    parentDiv.replaceChild(newButton0, oldButtonLeft);
-                    parentDiv.replaceChild(newButton1, oldButtonRight);
-                    parentDiv.appendChild(separatorDiv);
-                    parentDiv.appendChild(newButton2);
+                    parentDiv.replaceChild(newButtonBuiltWith, origButtonShowAPI);
+                    parentDiv.replaceChild(newButtonTemplateBy, origButtonBuiltWith);
+                    parentDiv.replaceChild(newButtonLicensed, origButtonSettings);
+                    parentDiv.appendChild(origSeparatorDiv.cloneNode(true));
+                    parentDiv.appendChild(origButtonSettings);
                 });
                 observerFooterButtons.observe(document.body, { childList: true, subtree: true });
             </script>
         """
+        )
+        # fmt: on
         if kwargs.get("analytics_enabled") is not False:
             self.head += f"""
                 <script async src="https://www.googletagmanager.com/gtag/js?id=G-1FWSVCGZTG"></script>
@@ -194,16 +207,16 @@ class DualVisionApp(gr.Blocks):
             .slider .disabled {{         /* hide the main slider before image load */
                 visibility: hidden;
             }}
-            .slider .svelte-9gxdi0 {{    /* hide the component label in the top-left corner before image load */
+            .slider .svelte-1to105q {{    /* hide the component label in the top-left corner before image load */
                 visibility: hidden;
             }}
             .slider .svelte-kzcjhc .icon-wrap {{
                 height: 0px;             /* remove unnecessary spaces in captions before image load */
             }}
-            .slider .svelte-kzcjhc.wrap {{
+            .slider .svelte-12ioyct.wrap {{
                 padding-top: 0px;        /* remove unnecessary spaces in captions before image load */
             }}
-            .slider .svelte-3w3rth {{    /* hide the dummy icon from the right pane before image load */
+            .slider .svelte-1oiin9d {{    /* hide the dummy icon from the right pane before image load */
                 visibility: hidden;
             }}
             .slider .svelte-106mu0e a {{ /* hide the download button */
@@ -216,29 +229,23 @@ class DualVisionApp(gr.Blocks):
                 width: {slider_line_width};
                 background: {slider_line_color};
             }}
-            .slider .icon-wrap svg {{    /* style slider arrows */
-                stroke: {slider_arrows_color};
-                stroke-width: {slider_arrows_width};
-            }}
-            .slider .icon-wrap path {{    /* style slider arrows */
-                fill: {slider_arrows_color};
+            .slider .icon-wrap {{    /* style slider arrows */
+                background-color: {slider_arrows_color};
             }}
             .row_reverse {{
                 flex-direction: row-reverse;
             }}
-            .gallery.svelte-l4wpk0 {{        /* make examples gallery tiles square */
+            .gallery.svelte-a9zvka {{        /* make examples gallery tiles square */
+                min-width: max({gallery_thumb_min_size}, calc(100vw / 8));
+                min-height: max({gallery_thumb_min_size}, calc(100vw / 8));
                 width: max({gallery_thumb_min_size}, calc(100vw / 8));
                 height: max({gallery_thumb_min_size}, calc(100vw / 8));
             }}
-            .gallery.svelte-l4wpk0 img {{    /* make examples gallery tiles square */
+            .gallery.svelte-p5q82i img {{    /* make examples gallery tiles square */
+                min-width: max({gallery_thumb_min_size}, calc(100vw / 8));
+                min-height: max({gallery_thumb_min_size}, calc(100vw / 8));
                 width: max({gallery_thumb_min_size}, calc(100vw / 8));
                 height: max({gallery_thumb_min_size}, calc(100vw / 8));
-            }}
-            .gallery.svelte-l4wpk0 img {{    /* remove slider line from previews */
-                clip-path: inset(0 0 0 0);
-            }}
-            .gallery.svelte-l4wpk0 span {{   /* remove slider line from previews */
-                visibility: hidden;
             }}
             h1, h2, h3 {{                    /* center markdown headings */
                 text-align: center;
@@ -301,7 +308,7 @@ class DualVisionApp(gr.Blocks):
         with self:
             self.make_interface()
 
-    def process(self, image_in: Image.Image, **kwargs):
+    def process(self, image_in: PILImage.Image, **kwargs):
         """
         Process an input image into multiple modalities using the provided arguments or default settings.
         Returns two dictionaries: one containing the modalities and another with the actual settings.
@@ -341,9 +348,9 @@ class DualVisionApp(gr.Blocks):
             if os.path.isfile(image_settings_path):
                 with open(image_settings_path, "r") as f:
                     image_settings = json.load(f)
-            image_in = Image.open(image_in).convert("RGB")
+            image_in = PILImage.open(image_in).convert("RGB")
         else:
-            if not isinstance(image_in, Image.Image):
+            if not isinstance(image_in, PILImage.Image):
                 raise gr.Error(f"Input must be a PIL image, got {type(image_in)}")
             image_in = image_in.convert("RGB")
         image_settings.update(kwargs)
@@ -365,7 +372,7 @@ class DualVisionApp(gr.Blocks):
                 raise gr.Error(
                     f"Output dict must not have an '{self.key_original_image}' key; it is reserved for the input"
                 )
-            if not isinstance(v, Image.Image):
+            if not isinstance(v, PILImage.Image):
                 raise gr.Error(
                     f"Value for key '{k}' must be a PIL Image, got type {type(v)}"
                 )
@@ -437,6 +444,21 @@ class DualVisionApp(gr.Blocks):
             image_in, modality_selector_left, modality_selector_right, **input_dict
         )
 
+    def on_process_example(
+        self,
+        dummy_image_input,
+        modality_selector_left=None,
+        modality_selector_right=None,
+        *args,
+    ):
+        image_in = dummy_image_input
+        input_dict = {}
+        if len(args) > 0:
+            input_dict = {k: v for k, v in zip(self.input_keys, args)}
+        return self.process_components(
+            image_in, modality_selector_left, modality_selector_right, **input_dict
+        )
+
     def on_process_subsequent(
         self, results_state, modality_selector_left, modality_selector_right, *args
     ):
@@ -469,6 +491,10 @@ class DualVisionApp(gr.Blocks):
 
         results_state = Gallery(visible=False)
 
+        dummy_image_input = Image(
+            visible=False,
+            type="filepath",
+        )
         image_slider = self.make_slider()
 
         if self.left_selector_visible or not self.advanced_settings_can_be_half_width:
@@ -489,7 +515,7 @@ class DualVisionApp(gr.Blocks):
                     )
 
         self.make_examples(
-            image_slider,
+            dummy_image_input,
             [
                 results_state,
                 image_slider,
@@ -559,11 +585,11 @@ class DualVisionApp(gr.Blocks):
 
     def make_slider(self):
         with gr.Row(elem_classes="sliderrow"):
-            return ImageSliderPlus(
+            return ImageSlider(
                 label=self.title,
                 type="filepath",
                 elem_classes="slider",
-                position=self.slider_position,
+                slider_position=self.slider_position,
             )
 
     def make_modality_selectors(self, reverse_visual_order=False):
@@ -600,14 +626,13 @@ class DualVisionApp(gr.Blocks):
             raise gr.Error("Not all example paths are valid files")
         examples_dirname = os.path.basename(os.path.normpath(self.examples_path))
         return Examples(
-            examples=[
-                (e, e) for e in examples
-            ],  # tuples like this seem to work better with the gallery
+            examples=examples,
             inputs=inputs,
             outputs=outputs,
             examples_per_page=self.examples_per_page,
-            cache_examples=self.examples_cache,
-            fn=self.on_process_first,
+            cache_examples=True,
+            cache_mode=self.examples_cache,
+            fn=self.on_process_example,
             directory_name=examples_dirname,
         )
 

@@ -1,1 +1,1 @@
-gradio-dualvision @ git+https://github.com/toshas/gradio-dualvision.git@gradio-4.44.1
+gradio-dualvision @ git+https://github.com/toshas/gradio-dualvision.git@gradio-5.29.0

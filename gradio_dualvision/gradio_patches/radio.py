@@ -23,13 +23,9 @@
 # --------------------------------------------------------------------------
 import gradio
 from gradio import components
-from gradio.components.base import Component
-from gradio.data_classes import (
-    GradioModel,
-    GradioRootModel,
-)
-
 from gradio.blocks import BlockContext
+from gradio.components.base import Component
+from gradio.data_classes import GradioModel, GradioRootModel
 
 
 def patched_postprocess_update_dict(
@@ -39,6 +35,14 @@ def patched_postprocess_update_dict(
     This is a patched version of the original function where 'pop' is replaced with 'get' in the first line.
     The key will no longer be removed but can still be accessed safely.
     This fixed gradio.Radio component persisting the value selection through gradio.Examples.
+
+    Converts a dictionary of updates into a format that can be sent to the frontend to update the component.
+    E.g. {"value": "2", "visible": True, "invalid_arg": "hello"}
+    Into -> {"__type__": "update", "value": 2.0, "visible": True}
+    Parameters:
+        block: The Block that is being updated with this update dictionary.
+        update_dict: The original update dictionary
+        postprocess: Whether to postprocess the "value" key of the update dictionary.
     """
     value = update_dict.get("value", components._Keywords.NO_VALUE)
 
