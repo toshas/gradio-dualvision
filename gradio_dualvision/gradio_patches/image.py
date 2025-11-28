@@ -39,7 +39,16 @@ class Image(gradio.Image):
         self,
         value,
     ) -> ImageData:
-        fn_format_selector = lambda x: "png" if (isinstance(x, np.ndarray) and x.dtype == np.uint16 and x.squeeze().ndim == 2) or (isinstance(x, PILImage.Image) and x.mode == "I;16") else self.format
+        fn_format_selector = lambda x: (
+            "png"
+            if (
+                isinstance(x, np.ndarray)
+                and x.dtype == np.uint16
+                and x.squeeze().ndim == 2
+            )
+            or (isinstance(x, PILImage.Image) and x.mode == "I;16")
+            else self.format
+        )
         format = fn_format_selector(value)
 
         out = image_utils.postprocess_image(
@@ -57,7 +66,9 @@ class Image(gradio.Image):
 
         return out
 
-    def preprocess(self, payload: ImageData) ->  str | PIL.Image.Image | np.ndarray | None:
+    def preprocess(
+        self, payload: ImageData
+    ) -> str | PIL.Image.Image | np.ndarray | None:
         out = super().preprocess(payload)
 
         if "settings" in payload.meta:
@@ -78,11 +89,11 @@ class Image(gradio.Image):
             right = left + min_side
             bottom = top + min_side
             img = img.crop((left, top, right, bottom))
-        
+
         img.thumbnail((max_dim, max_dim))
         temp_file = tempfile.NamedTemporaryFile(suffix=".webp", delete=False)
         img.save(temp_file.name, "WEBP")
-        
+
         return temp_file.name
 
     def process_example(

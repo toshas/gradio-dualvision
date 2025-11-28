@@ -27,6 +27,14 @@ import os
 import re
 
 import gradio as gr
+from .version import __version__
+
+if __version__ != gr.__version__:
+    raise gr.Error(
+        f"gradio version ({gr.__version__}) must match gradio-dualvision version ({__version__}). "
+        f"Check the metadata of the README.md in your demo (sdk_version field)."
+    )
+
 import spaces
 from PIL import Image as PILImage
 from gradio import Component, ImageSlider
@@ -35,7 +43,6 @@ from .gradio_patches.examples import Examples
 from .gradio_patches.gallery import Gallery
 from .gradio_patches.image import Image
 from .gradio_patches.radio import Radio
-from .version import __version__
 
 
 class DualVisionApp(gr.Blocks):
@@ -82,12 +89,6 @@ class DualVisionApp(gr.Blocks):
             gallery_thumb_min_size: Min size of the gallery thumbnail (Default: `96px`).
             **kwargs: Any other arguments that Gradio Blocks class can take.
         """
-        if __version__ != gr.__version__:
-            raise gr.Error(
-                f"gradio version ({gr.__version__}) must match gradio-dualvision version ({__version__}). "
-                f"Check the metadata of the README.md in your demo (sdk_version field)."
-            )
-
         squeeze_viewport_height_pct = int(squeeze_viewport_height_pct)
         if not 50 <= squeeze_viewport_height_pct <= 100:
             raise gr.Error(
@@ -113,8 +114,9 @@ class DualVisionApp(gr.Blocks):
             self.process_components = spaces.GPU(
                 self.process_components, duration=spaces_zero_gpu_duration
             )
-        self.head = ""
-        self.head += """
+        # fmt: off
+        self.head = (
+            """
             <script>
                 let observerFooterButtons = new MutationObserver((mutationsList, observer) => {
                     const origButtonShowAPI = document.querySelector(".show-api");
@@ -158,6 +160,8 @@ class DualVisionApp(gr.Blocks):
                 observerFooterButtons.observe(document.body, { childList: true, subtree: true });
             </script>
         """
+        )
+        # fmt: on
         if kwargs.get("analytics_enabled") is not False:
             self.head += f"""
                 <script async src="https://www.googletagmanager.com/gtag/js?id=G-1FWSVCGZTG"></script>

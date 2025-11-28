@@ -29,7 +29,13 @@ from pathlib import Path
 from urllib.parse import quote, urlparse
 
 from gradio import FileData, image_utils, processing_utils, utils, wasm_utils
-from gradio.components.gallery import GalleryData, GalleryImage, GalleryMediaType, CaptionedGalleryMediaType, GalleryVideo
+from gradio.components.gallery import (
+    GalleryData,
+    GalleryImage,
+    GalleryMediaType,
+    CaptionedGalleryMediaType,
+    GalleryVideo,
+)
 from gradio_client import utils as client_utils
 from gradio_client.utils import is_http_url_like
 from gradio.data_classes import ImageData
@@ -68,7 +74,9 @@ class Gallery(gradio.Gallery):
                 )
                 file_path = str(utils.abspath(file))
             elif isinstance(img, PIL.Image.Image):
-                format = "png" if img.mode == "I;16" else self.format  # Patch 1: change format based on the inbound dtype
+                format = (
+                    "png" if img.mode == "I;16" else self.format
+                )  # Patch 1: change format based on the inbound dtype
                 file = processing_utils.save_pil_to_cache(
                     img, cache_dir=self.GRADIO_CACHE, format=format
                 )
