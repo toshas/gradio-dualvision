@@ -173,8 +173,6 @@ class DualVisionApp(gr.Blocks):
                     parentDiv.replaceChild(newButtonBuiltWith, origButtonShowAPI);
                     parentDiv.replaceChild(newButtonTemplateBy, origButtonBuiltWith);
                     parentDiv.replaceChild(newButtonLicensed, origButtonSettings);
-                    parentDiv.appendChild(origSeparatorDiv.cloneNode(true));
-                    parentDiv.appendChild(origButtonSettings);
                 });
                 observerFooterButtons.observe(document.body, { childList: true, subtree: true });
             </script>
