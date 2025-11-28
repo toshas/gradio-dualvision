@@ -38,6 +38,8 @@ This very space running live on Hugging Face Spaces:
 
 A few real examples:
 - [Marigold Depth](https://huggingface.co/spaces/prs-eth/marigold)
+- [Marigold Normals](https://huggingface.co/spaces/prs-eth/marigold-normals)
+- [Marigold Image Intrinsics](https://huggingface.co/spaces/prs-eth/marigold-intrinsics)
 - [Thera Superresolution](https://huggingface.co/spaces/prs-eth/thera)
 
 ## Quick start
@@ -82,11 +84,6 @@ readily-accessible examples is a common pattern in computer vision and image pro
 the [gradio-imageslider](https://github.com/pngwn/gradio-imageslider) custom component, adds modality selectors (radio
 buttons), and connects it all nicely with the Gradio's built-in Examples functionality.  
 
-**Q: Isn't it exactly what `gradio-imageslider` is doing?**<br>
-A: Not quite. See the [gradio_dualvision/gradio_patches](gradio_dualvision/gradio_patches) directory for a complete set
-of version-specific changes required to wire it all up _nicely_. Indeed, a custom component with all these functions 
-would be more efficient.
-
 **Q: What is the architecture of the template?**<br>
 - Inputs: an input image (that is either uploaded or sent from Examples), and any settings you create in the 
 `build_user_components` override.
@@ -124,9 +121,12 @@ These are the cats of the Marigold authors!
 
 - Does not work correctly inside the `TabbedInterface`.
 - Double copying between the hidden gallery component and the slider introduces visible flickering.
-- Fixed versions of `gradio==4.44.1` and `gradio_imageslider==0.0.20`; 
+- Each branch of gradio-dualvision is locked to specific versions of `gradio` matching the branch name.
 PRs are welcome but should start as a discussion in the [Issues](https://github.com/toshas/gradio-dualvision/issues) 
 first. 
+
+## Contributing 
+PRs are welcome but should start as a discussion in the [Issues](https://github.com/toshas/gradio-dualvision/issues) first. 
 
 ## Citation:
 If you find this code useful, we kindly ask you to cite our papers:
