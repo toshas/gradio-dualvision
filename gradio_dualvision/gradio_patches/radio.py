@@ -23,13 +23,9 @@
 # --------------------------------------------------------------------------
 import gradio
 from gradio import components
-from gradio.components.base import Component
-from gradio.data_classes import (
-    GradioModel,
-    GradioRootModel,
-)
-
 from gradio.blocks import BlockContext
+from gradio.components.base import Component
+from gradio.data_classes import GradioModel, GradioRootModel
 
 
 def patched_postprocess_update_dict(
