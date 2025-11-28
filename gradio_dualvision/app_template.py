@@ -83,7 +83,10 @@ class DualVisionApp(gr.Blocks):
             **kwargs: Any other arguments that Gradio Blocks class can take.
         """
         if __version__ != gr.__version__:
-            raise gr.Error(f"gradio version ({gr.__version__}) must match gradio-dualvision version ({__version__}). Check the README.md of your demo.")
+            raise gr.Error(
+                f"gradio version ({gr.__version__}) must match gradio-dualvision version ({__version__}). "
+                f"Check the metadata of the README.md in your demo (sdk_version field)."
+            )
 
         squeeze_viewport_height_pct = int(squeeze_viewport_height_pct)
         if not 50 <= squeeze_viewport_height_pct <= 100:
