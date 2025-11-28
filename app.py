@@ -85,6 +85,7 @@ with ImageFiltersApp(
     examples_path="examples",
     examples_per_page=5,
     squeeze_canvas=True,
+    spaces_zero_gpu_enabled=True,
 ) as demo:
     demo.queue(
         api_open=False,
