@@ -22,6 +22,13 @@
 #   https://github.com/prs-eth/rollingdepth#-citation
 # --------------------------------------------------------------------------
 import gradio
+import gradio.component_meta as _component_meta
+
+def _noop_create_or_modify_pyi(*args, **kwargs):
+    return None
+
+_component_meta.create_or_modify_pyi = _noop_create_or_modify_pyi
+
 import numpy as np
 import PIL.Image
 from concurrent.futures import ThreadPoolExecutor
