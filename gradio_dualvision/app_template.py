@@ -118,6 +118,25 @@ class DualVisionApp(gr.Blocks):
         self.head = (
             """
             <script>
+                window.addEventListener("message", (event) => {
+                    if (event.data?.type === "remove-elements") {
+                        const removeTargets = () => {
+                            const targets = document.querySelectorAll(".remove-elements");
+                            targets.forEach(el => el.remove());
+                        };
+                        
+                        removeTargets();                    
+                        const observer = new MutationObserver(() => {
+                            removeTargets();
+                        });
+                        observer.observe(document.body, { childList: true, subtree: true });
+    
+                        event.source?.postMessage({ type: "ack-remove-elements", source: "gradio-app" }, event.origin);
+                        console.log("Processed event remove-elements");
+                    }
+                });
+            </script>
+            <script>
                 let observerFooterButtons = new MutationObserver((mutationsList, observer) => {
                     const origButtonShowAPI = document.querySelector(".show-api");
                     const origButtonBuiltWith = document.querySelector(".built-with");
