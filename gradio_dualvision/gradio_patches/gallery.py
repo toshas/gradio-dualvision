@@ -24,10 +24,10 @@
 import gradio
 import gradio.component_meta as _component_meta
 
-def _noop_create_or_modify_pyi(*args, **kwargs):
-    return None
+# def _noop_create_or_modify_pyi(*args, **kwargs):
+#     return None
 
-_component_meta.create_or_modify_pyi = _noop_create_or_modify_pyi
+# _component_meta.create_or_modify_pyi = _noop_create_or_modify_pyi
 
 import numpy as np
 import PIL.Image
@@ -35,7 +35,7 @@ from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 from urllib.parse import quote, urlparse
 
-from gradio import FileData, image_utils, processing_utils, utils, wasm_utils
+from gradio import FileData, image_utils, processing_utils, utils
 from gradio.components.gallery import (
     GalleryData,
     GalleryImage,
@@ -130,11 +130,7 @@ class Gallery(gradio.Gallery):
                     caption=caption,
                 )
 
-        if wasm_utils.IS_WASM:
-            for img in value:
-                output.append(_save(img))
-        else:
-            with ThreadPoolExecutor() as executor:
-                for o in executor.map(_save, value):
-                    output.append(o)
+        with ThreadPoolExecutor() as executor:
+            for o in executor.map(_save, value):
+                output.append(o)
         return GalleryData(root=output)

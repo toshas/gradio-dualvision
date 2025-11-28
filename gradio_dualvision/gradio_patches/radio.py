@@ -46,8 +46,13 @@ def patched_postprocess_update_dict(
     """
     value = update_dict.get("value", components._Keywords.NO_VALUE)
 
-    # Continue with the original logic
+    props = None
+    if hasattr(block, "props"):
+        props = {k: v for k, v in update_dict.items() if not hasattr(block, k)}
     update_dict = {k: getattr(block, k) for k in update_dict if hasattr(block, k)}
+    if props:
+        update_dict["props"] = props    
+
     if value is not components._Keywords.NO_VALUE:
         if postprocess:
             update_dict["value"] = block.postprocess(value)
