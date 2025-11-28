@@ -121,9 +121,7 @@ These are the cats of the Marigold authors!
 
 - Does not work correctly inside the `TabbedInterface`.
 - Double copying between the hidden gallery component and the slider introduces visible flickering.
-- Each version of gradio-dualvision is locked to specific versions of `gradio`:
-  - `v0.1.0`: `gradio==4.44.1` and `gradio_imageslider==0.0.20`;
-  - `v0.2.0`: `gradio==6.0.0`;
+- Each branch of gradio-dualvision is locked to specific versions of `gradio` matching the branch name.
 
 ## Contributing 
 PRs are welcome but should start as a discussion in the [Issues](https://github.com/toshas/gradio-dualvision/issues) first. 

@@ -21,21 +21,26 @@ class ImageFiltersApp(DualVisionApp):
         gr.Markdown(
             f"""
             ## {self.title}
-            <p align="center">
-            <a title="Github" href="https://github.com/toshas/gradio-dualvision" target="_blank" rel="noopener noreferrer" style="display: inline-block;">
-                <img src="https://img.shields.io/github/stars/toshas/gradio-dualvision?label=GitHub%20%E2%98%85&logo=github&color=C8C" alt="badge-github-stars">
-            </a>
-            <a title="Social" href="https://twitter.com/antonobukhov1" target="_blank" rel="noopener noreferrer" style="display: inline-block;">
-                <img src="https://shields.io/twitter/follow/:?label=Subscribe%20for%20updates!" alt="social">
-            </a>
-            </p>                    
-            <p align="center" style="margin-top: 0px;">
-                Upload a photo or select an example to process the input in real time.
-                Use the slider to reveal areas of interest.
-                Use the radio-buttons to switch between modalities.
-            </p>
-        """
+            """
         )
+        with gr.Row(elem_classes="remove-elements"):
+            gr.Markdown(
+                f"""
+                <p align="center">
+                <a title="Github" href="https://github.com/toshas/gradio-dualvision" target="_blank" rel="noopener noreferrer" style="display: inline-block;">
+                    <img src="https://img.shields.io/github/stars/toshas/gradio-dualvision?label=GitHub%20%E2%98%85&logo=github&color=C8C" alt="badge-github-stars">
+                </a>
+                <a title="Social" href="https://twitter.com/antonobukhov1" target="_blank" rel="noopener noreferrer" style="display: inline-block;">
+                    <img src="https://shields.io/twitter/follow/:?label=Subscribe%20for%20updates!" alt="social">
+                </a>
+                </p>
+                <p align="center" style="margin-top: 0px;">
+                    Upload a photo or select an example to process the input in real time.
+                    Use the slider to reveal areas of interest.
+                    Use the radio-buttons to switch between modalities.
+                </p>
+                """
+            )
 
     def build_user_components(self):
         """
@@ -80,12 +85,14 @@ with ImageFiltersApp(
     examples_path="examples",
     examples_per_page=5,
     squeeze_canvas=True,
+    spaces_zero_gpu_enabled=True,
 ) as demo:
     demo.queue(
         api_open=False,
     ).launch(
         server_name="0.0.0.0",
         server_port=7860,
+        ssr_mode=False,
         css=demo.get_css(),
         head=demo.get_head(),
     )

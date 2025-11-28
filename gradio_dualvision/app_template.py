@@ -27,15 +27,22 @@ import os
 import re
 
 import gradio as gr
+from .version import __version__
+
+if __version__ != gr.__version__:
+    raise gr.Error(
+        f"gradio version ({gr.__version__}) must match gradio-dualvision version ({__version__}). "
+        f"Check the metadata of the README.md in your demo (sdk_version field)."
+    )
+
 import spaces
-from PIL import Image
-from gradio.components.base import Component
+from PIL import Image as PILImage
+from gradio import Component, ImageSlider
 
 from .gradio_patches.examples import Examples
 from .gradio_patches.gallery import Gallery
-from .gradio_patches.imageslider import ImageSlider
+from .gradio_patches.image import Image
 from .gradio_patches.radio import Radio
-from .version import __version__
 
 
 class DualVisionApp(gr.Blocks):
@@ -107,8 +114,28 @@ class DualVisionApp(gr.Blocks):
             self.process_components = spaces.GPU(
                 self.process_components, duration=spaces_zero_gpu_duration
             )
-        self.head = ""
-        self.head += """
+        # fmt: off
+        self.head = (
+            """
+            <script>
+                window.addEventListener("message", (event) => {
+                    if (event.data?.type === "remove-elements") {
+                        const removeTargets = () => {
+                            const targets = document.querySelectorAll(".remove-elements");
+                            targets.forEach(el => el.remove());
+                        };
+                        
+                        removeTargets();                    
+                        const observer = new MutationObserver(() => {
+                            removeTargets();
+                        });
+                        observer.observe(document.body, { childList: true, subtree: true });
+    
+                        event.source?.postMessage({ type: "ack-remove-elements", source: "gradio-app" }, event.origin);
+                        console.log("Processed event remove-elements");
+                    }
+                });
+            </script>
             <script>
                 let observerFooterButtons = new MutationObserver((mutationsList, observer) => {
                     const origButtonShowAPI = document.querySelector(".show-api");
@@ -146,12 +173,12 @@ class DualVisionApp(gr.Blocks):
                     parentDiv.replaceChild(newButtonBuiltWith, origButtonShowAPI);
                     parentDiv.replaceChild(newButtonTemplateBy, origButtonBuiltWith);
                     parentDiv.replaceChild(newButtonLicensed, origButtonSettings);
-                    parentDiv.appendChild(origSeparatorDiv.cloneNode(true));
-                    parentDiv.appendChild(origButtonSettings);
                 });
                 observerFooterButtons.observe(document.body, { childList: true, subtree: true });
             </script>
         """
+        )
+        # fmt: on
         if kwargs.get("analytics_enabled") is not False:
             self.head += f"""
                 <script async src="https://www.googletagmanager.com/gtag/js?id=G-1FWSVCGZTG"></script>
@@ -206,19 +233,17 @@ class DualVisionApp(gr.Blocks):
             .row_reverse {{
                 flex-direction: row-reverse;
             }}
-            .gallery.svelte-11djrz8 {{        /* make examples gallery tiles square */
+            .gallery.svelte-a9zvka {{        /* make examples gallery tiles square */
+                min-width: max({gallery_thumb_min_size}, calc(100vw / 8));
+                min-height: max({gallery_thumb_min_size}, calc(100vw / 8));
                 width: max({gallery_thumb_min_size}, calc(100vw / 8));
                 height: max({gallery_thumb_min_size}, calc(100vw / 8));
             }}
-            .gallery.svelte-11djrz8 img {{    /* make examples gallery tiles square */
+            .gallery.svelte-p5q82i img {{    /* make examples gallery tiles square */
+                min-width: max({gallery_thumb_min_size}, calc(100vw / 8));
+                min-height: max({gallery_thumb_min_size}, calc(100vw / 8));
                 width: max({gallery_thumb_min_size}, calc(100vw / 8));
                 height: max({gallery_thumb_min_size}, calc(100vw / 8));
-            }}
-            .gallery.svelte-11djrz8 img {{    /* remove slider line from previews */
-                clip-path: inset(0 0 0 0);
-            }}
-            .gallery.svelte-11djrz8 span {{   /* remove slider line from previews */
-                visibility: hidden;
             }}
             h1, h2, h3 {{                    /* center markdown headings */
                 text-align: center;
@@ -285,7 +310,7 @@ class DualVisionApp(gr.Blocks):
     def get_head(self):
         return self.head
 
-    def process(self, image_in: Image.Image, **kwargs):
+    def process(self, image_in: PILImage.Image, **kwargs):
         """
         Process an input image into multiple modalities using the provided arguments or default settings.
         Returns two dictionaries: one containing the modalities and another with the actual settings.
@@ -325,9 +350,9 @@ class DualVisionApp(gr.Blocks):
             if os.path.isfile(image_settings_path):
                 with open(image_settings_path, "r") as f:
                     image_settings = json.load(f)
-            image_in = Image.open(image_in).convert("RGB")
+            image_in = PILImage.open(image_in).convert("RGB")
         else:
-            if not isinstance(image_in, Image.Image):
+            if not isinstance(image_in, PILImage.Image):
                 raise gr.Error(f"Input must be a PIL image, got {type(image_in)}")
             image_in = image_in.convert("RGB")
         image_settings.update(kwargs)
@@ -349,7 +374,7 @@ class DualVisionApp(gr.Blocks):
                 raise gr.Error(
                     f"Output dict must not have an '{self.key_original_image}' key; it is reserved for the input"
                 )
-            if not isinstance(v, Image.Image):
+            if not isinstance(v, PILImage.Image):
                 raise gr.Error(
                     f"Value for key '{k}' must be a PIL Image, got type {type(v)}"
                 )
@@ -421,6 +446,21 @@ class DualVisionApp(gr.Blocks):
             image_in, modality_selector_left, modality_selector_right, **input_dict
         )
 
+    def on_process_example(
+        self,
+        dummy_image_input,
+        modality_selector_left=None,
+        modality_selector_right=None,
+        *args,
+    ):
+        image_in = dummy_image_input
+        input_dict = {}
+        if len(args) > 0:
+            input_dict = {k: v for k, v in zip(self.input_keys, args)}
+        return self.process_components(
+            image_in, modality_selector_left, modality_selector_right, **input_dict
+        )
+
     def on_process_subsequent(
         self, results_state, modality_selector_left, modality_selector_right, *args
     ):
@@ -453,6 +493,10 @@ class DualVisionApp(gr.Blocks):
 
         results_state = Gallery(visible=False)
 
+        dummy_image_input = Image(
+            visible=False,
+            type="filepath",
+        )
         image_slider = self.make_slider()
 
         if self.left_selector_visible or not self.advanced_settings_can_be_half_width:
@@ -473,7 +517,7 @@ class DualVisionApp(gr.Blocks):
                     )
 
         self.make_examples(
-            image_slider,
+            dummy_image_input,
             [
                 results_state,
                 image_slider,
@@ -584,15 +628,13 @@ class DualVisionApp(gr.Blocks):
             raise gr.Error("Not all example paths are valid files")
         examples_dirname = os.path.basename(os.path.normpath(self.examples_path))
         return Examples(
-            examples=[
-                (e, e) for e in examples
-            ],
+            examples=examples,
             inputs=inputs,
             outputs=outputs,
             examples_per_page=self.examples_per_page,
             cache_examples=True,
             cache_mode=self.examples_cache,
-            fn=self.on_process_first,
+            fn=self.on_process_example,
             directory_name=examples_dirname,
         )
 
