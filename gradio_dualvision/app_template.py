@@ -251,38 +251,6 @@ class DualVisionApp(gr.Blocks):
             }}
         """
         if squeeze_canvas:
-            self.head += f"""
-                <script>
-                    // fixes vertical size of the component when used inside of iframeResizer (on spaces)
-                    function squeezeViewport() {{
-                        if (typeof window.parentIFrame === "undefined") return;
-                        const images = document.querySelectorAll('.slider img');
-                        window.parentIFrame.getPageInfo((info) => {{
-                            images.forEach((img) => {{
-                                const imgMaxHeightNew = (info.clientHeight * {squeeze_viewport_height_pct}) / 100;
-                                img.style.maxHeight = `${{imgMaxHeightNew}}px`;
-                                // window.parentIFrame.size(0, null);  // tighten the layout; body's flex-grow: 0 is less intrusive
-                            }});
-                        }});
-                    }}
-                    window.addEventListener('resize', squeezeViewport);
-
-                    // fixes gradio-imageslider wrong position behavior when using fitting to content by triggering resize
-                    let observer = new MutationObserver((mutationsList) => {{
-                        const images = document.querySelectorAll('.slider img');
-                        images.forEach((img) => {{
-                            if (img.complete) {{
-                                window.dispatchEvent(new Event('resize'));
-                            }} else {{
-                                img.onload = () => {{
-                                    window.dispatchEvent(new Event('resize'));
-                                }}
-                            }}
-                        }});
-                    }});
-                    observer.observe(document.body, {{ childList: true, subtree: true }});
-                </script>
-            """
             self.css += f"""
                 .slider {{               /* make the slider dimensions fit to the uploaded content dimensions */
                     max-width: fit-content;
