@@ -63,7 +63,9 @@ class DualVisionApp(gr.Blocks):
         squeeze_canvas=True,
         squeeze_viewport_height_pct=75,
         left_selector_visible=False,
+        right_selector_visible=True,
         advanced_settings_can_be_half_width=True,
+        advanced_settings_visible=True,
         key_original_image="Original",
         spaces_zero_gpu_enabled=False,
         spaces_zero_gpu_duration=None,
@@ -86,8 +88,10 @@ class DualVisionApp(gr.Blocks):
             squeeze_canvas: When True, the image is fit to the browser viewport. When False, the image is fit to width (Default: `True`).
             squeeze_viewport_height_pct: Percentage of the browser viewport height (Default: `75`).
             left_selector_visible: Whether controls for changing modalities in the left part of the slider are visible (Default: `False`).
+            right_selector_visible: Whether controls for changing modalities in the right part of the slider are visible (Default: `True`).
             key_original_image: Name of the key under which the input image is shown in the modality selectors (Default: `"Original"`).
             advanced_settings_can_be_half_width: Whether allow placing advanced settings dropdown in half-column space whenever possible (Default: `True`).
+            advanced_settings_visible: Whether the advanced settings dropdown is visible (Default: `True`).
             spaces_zero_gpu_enabled: When True, the app wraps the processing function with the ZeroGPU decorator.
             spaces_zero_gpu_duration: Defines an integer duration in seconds passed into the ZeroGPU decorator.
             slider_position: Position of the slider between 0 and 100 (Default: `50`).
@@ -117,7 +121,9 @@ class DualVisionApp(gr.Blocks):
         self.input_cls = None
         self.input_kwargs = None
         self.left_selector_visible = left_selector_visible
+        self.right_selector_visible = right_selector_visible
         self.advanced_settings_can_be_half_width = advanced_settings_can_be_half_width
+        self.advanced_settings_visible = advanced_settings_visible
         if spaces_zero_gpu_enabled:
             self.process_components = spaces.GPU(
                 self.process_components, duration=spaces_zero_gpu_duration
@@ -585,6 +591,7 @@ class DualVisionApp(gr.Blocks):
             show_label=False,
             container=False,
             elem_id="selector_right",
+            visible=self.right_selector_visible,
             render=not reverse_visual_order,
         )
         if reverse_visual_order:
@@ -611,7 +618,7 @@ class DualVisionApp(gr.Blocks):
         )
 
     def make_advanced_settings(self):
-        with gr.Accordion("Advanced Settings", open=False):
+        with gr.Accordion("Advanced Settings", open=False, visible=self.advanced_settings_visible):
             user_components = self.build_user_components()
             if not isinstance(user_components, dict) or any(
                 not isinstance(k, str) or not isinstance(v, Component)
