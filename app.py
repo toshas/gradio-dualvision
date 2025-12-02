@@ -63,12 +63,19 @@ class ImageFiltersApp(DualVisionApp):
         Process an input image into multiple modalities using the provided arguments or default settings.
         Returns two dictionaries: one containing the modalities and another with the actual settings.
         """
+        # Downscale the image to 1024px on the longer side
+        scale = min(1.0, 1024 / max(image_in.width, image_in.height))
+        image_in = image_in.resize((round(image_in.width * scale), round(image_in.height * scale)), Image.LANCZOS)        
+
+        # Read settings from kwargs or use default
         filter_size = kwargs.get("filter_size", self.DEFAULT_FILTER_SIZE)
 
+        # Process the input image in a variety of ways
         image_out_gray = image_in.convert("L")
         image_out_gaussian = image_in.filter(ImageFilter.GaussianBlur(filter_size // 2))
         image_out_median = image_in.filter(ImageFilter.MedianFilter(filter_size))
 
+        # Return the results and current settings to update the UI
         out_modalities = {
             "Gray": image_out_gray,
             "Gaussian": image_out_gaussian,

@@ -21,10 +21,17 @@
 #   https://github.com/prs-eth/Marigold-DC#-citation
 #   https://github.com/prs-eth/rollingdepth#-citation
 # --------------------------------------------------------------------------
+import os
+print("\n".join(f"{k}={v}" for k, v in os.environ.items()))
+os.system("pip freeze")
+
 import glob
 import json
-import os
 import re
+
+from pi_heif import register_heif_opener
+register_heif_opener()
+
 
 import gradio as gr
 from .version import __version__
@@ -39,6 +46,7 @@ import spaces
 from PIL import Image as PILImage
 from gradio import Component, ImageSlider
 
+from .gradio_patches import image_utils
 from .gradio_patches.examples import Examples
 from .gradio_patches.gallery import Gallery
 from .gradio_patches.image import Image
